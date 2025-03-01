@@ -1,0 +1,16 @@
+services:
+  traefik:
+    command:
+      # Enable secure API and dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=${DASHBOARD_INSECURE:-false}"
+
+      # HTTP and HTTPS entrypoint configuration
+      - "--entrypoints.web.address=:80"
+
+      # Enable Traefik to detect Docker containers
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+    labels:
+      - "traefik.http.routers.traefik.entrypoints=web"

@@ -1,10 +1,17 @@
-# Use this override to enable SSL
-
 services:
   traefik:
     command:
-      # HTTPS entrypoint configuration
+      # Enable secure API and dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=${DASHBOARD_INSECURE:-false}"
+
+      # HTTP and HTTPS entrypoint configuration
+      - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+
+      # Enable Traefik to detect Docker containers
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
 
       # Automatic HTTP to HTTPS redirection
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
@@ -19,5 +26,4 @@ services:
       - "443:443"
 
     labels:
-      # Enable SSL for the dashboard
       - "traefik.http.routers.traefik.entrypoints=websecure"
