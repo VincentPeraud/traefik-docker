@@ -6,7 +6,7 @@ services:
     command:
       # Enable secure API and dashboard
       - "--api.dashboard=true"
-      - "--api.insecure=false"
+      - "--api.insecure=${DASHBOARD_INSECURE:-false}"
 
       # HTTP and HTTPS entrypoints configuration
       - "--entrypoints.web.address=:80"
@@ -21,15 +21,14 @@ services:
       - "--providers.docker.exposedbydefault=false"
 
       # Let's Encrypt configuration (automatic SSL)
-      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge=${USE_SSL:-false}"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.le.acme.email=your-email@example.com"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
 
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"  # Secure Traefik Dashboard
+      - "${DASHBOARD_PORT-8080}:8080"  # Secure Traefik Dashboard
 
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -38,8 +37,8 @@ services:
     labels:
       # Dashboard password protection
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`$DASHBOARD_DOMAIN`)" # Change with your domain
+      - "traefik.http.routers.traefik.rule=Host(`${DASHBOARD_DOMAIN:-localhost}`)" # Change with your domain
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=$DASHBOARD_AUTH" # Replace with your hash
+      - "traefik.http.middlewares.auth.basicauth.users=${DASHBOARD_BASIC_AUTH}:-" # Replace with your hash
