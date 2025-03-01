@@ -14,3 +14,4 @@ services:
 
     labels:
       - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.tls=false"
