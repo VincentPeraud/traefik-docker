@@ -13,22 +13,22 @@ services:
       - "--entrypoints.websecure.address=:443"
 
       # Automatic HTTP to HTTPS redirection
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      # - "${USE_SSL:+--entrypoints.web.http.redirections.entryPoint.to=websecure}"
+      # - "${USE_SSL:+--entrypoints.web.http.redirections.entryPoint.scheme=https}"
 
       # Enable Traefik to detect Docker containers
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
 
       # Let's Encrypt configuration (automatic SSL)
-      - "--certificatesresolvers.le.acme.httpchallenge=${USE_SSL:-false}"
+      - "--certificatesresolvers.le.acme.httpchallenge=${USE_SSL:-false}${USE_SSL:+true}"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
 
     ports:
       - "80:80"
       - "443:443"
-      - "${DASHBOARD_PORT-8080}:8080"  # Secure Traefik Dashboard
+      - "${DASHBOARD_PORT:-8080}:8080"  # Secure Traefik Dashboard
 
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -37,8 +37,10 @@ services:
     labels:
       # Dashboard password protection
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`${DASHBOARD_DOMAIN:-localhost}`)" # Change with your domain
-      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.rule=Host(`${DASHBOARD_DOMAIN:-localhost}`)"
+      # - "${USE_SSL:+traefik.http.routers.traefik.entrypoints=websecure}"
+      # - "${USE_SSL:-traefik.http.routers.traefik.entrypoints=web}"
+      - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${DASHBOARD_BASIC_AUTH}:-" # Replace with your hash
+      - "traefik.http.middlewares.auth.basicauth.users=${DASHBOARD_BASIC_AUTH:-}"
