@@ -1,0 +1,23 @@
+# Use this override to enable SSL
+
+services:
+  traefik:
+    command:
+      # HTTPS entrypoint configuration
+      - "--entrypoints.websecure.address=:443"
+
+      # Automatic HTTP to HTTPS redirection
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+
+      # Let's Encrypt configuration (automatic SSL)
+      - "certificatesresolvers.le.acme.httpchallenge=true"
+      - "certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+
+    ports:
+      - "443:443"
+
+    labels:
+      # Enable SSL for the dashboard
+      - "traefik.http.routers.traefik.entrypoints=websecure"
